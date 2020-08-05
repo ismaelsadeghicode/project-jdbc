@@ -1,6 +1,7 @@
 package com.mapsa.database;
 
 import com.mapsa.persistence.Column;
+import com.mapsa.persistence.Id;
 import com.mapsa.persistence.Table;
 
 import java.io.IOException;
@@ -54,5 +55,49 @@ public class CRUD {
         } catch (IOException | SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public void update(Object object) throws IOException, SQLException {
+        Table table = object.getClass().getDeclaredAnnotation(Table.class);
+        String query = "UPDATE " + table.name() + " SET ";
+        Field[] fields = object.getClass().getDeclaredFields();
+        Object oid = null;
+        String idColumn = null;
+        for (Field field : fields) {
+            Column column = field.getDeclaredAnnotation(Column.class);
+            field.setAccessible(true);
+            Id id = field.getDeclaredAnnotation(Id.class);
+            if (id != null) {
+                try {
+                    oid = field.get(object);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+                idColumn = column.name();
+            }
+            if (column != null) {
+                try {
+                    if (id == null) {
+                        if (field.getType().getSimpleName().endsWith("String")) {
+                            query += column.name() + " = " + "'" + field.get(object) + "',";
+                        } else {
+                            query += column.name() + " = " + field.get(object) + ",";
+                        }
+                    }
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        if (query.trim().endsWith(",")) {
+            query = query.substring(0, query.length() - 1);
+        }
+        query += " WHERE " + idColumn + "=" + oid;
+
+        System.out.println(query);
+
+        dbConnection = DBConnection.getInstance();
+        PreparedStatement statement = dbConnection.getConnection().prepareStatement(query);
+        statement.executeUpdate();
     }
 }

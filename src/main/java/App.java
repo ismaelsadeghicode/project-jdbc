@@ -11,7 +11,7 @@ import java.sql.SQLException;
  */
 public class App {
 
-    public static void main(String[] args) throws IllegalAccessException {
+    public static void main(String[] args) throws IllegalAccessException, IOException, SQLException {
 //        DBConnection.getInstance().getConnection();
 
 //        TableGenerate tableGenerate = new TableGenerate();
@@ -23,7 +23,7 @@ public class App {
         customer.setFirstName("ali");
         customer.setLastName("aliyari");
 //        crud.save(customer);
-        System.out.println(crud.save(customer));
+        crud.update(customer);
 
     }
 }
